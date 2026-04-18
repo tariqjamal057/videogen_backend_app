@@ -1,0 +1,156 @@
+[
+    {
+        "name": "Hugging",
+        "templates": [
+            {
+                "name": "Heartfelt Hug",
+                "description": "Bring affection to life with a warm",
+                "prompt": "A cinematic, slow-motion transition of two people leaning into a deep, heartfelt embrace with realistic physical contact and genuine emotional warmth.",
+                "image": "hug.gif",
+                "inputType": "image",
+                "noOfInput": 2
+            },
+            {
+                "name": "Warm Embrace",
+                "description": "Bring affection to life with a warm",
+                "prompt": "A gentle, cinematic transition of two people drawing together into a soft, warm embrace, capturing the tender movement of arms wrapping and the peaceful comfort of a close hug.",
+                "image": "warm-embrace.avif",
+                "inputType": "image",
+                "noOfInput": 2
+            }
+        ]
+    },
+    {
+        "name": "Kissing",
+        "templates": [
+            {
+                "name": "Romantic Kiss",
+                "description": "Bring affection to life with a warm",
+                "prompt": "A slow, cinematic lean into a tender romantic kiss, capturing soft facial movements and an intimate connection with a gentle, focused camera zoom.",
+                "image": "romantic-kiss.avif",
+                "inputType": "image",
+                "noOfInput": 2
+            },
+            {
+                "name": "Leh Kiss",
+                "description": "Bring affection to life with a warm",
+                "prompt": "A cinematic, slow-motion romantic moment of two people standing very close together. One person gently leans forward and places a soft, tender kiss on the other person’s forehead — not on the lips, not on the mouth, not on the cheek. The lips clearly touch only the forehead. The person receiving the kiss slightly closes their eyes, feeling safe and comforted. Subtle natural movement, soft breathing, and emotional stillness. Warm cinematic lighting, shallow depth of field, soft bokeh background. Realistic facial expressions, natural human motion, smooth animation. The camera slowly pushes in, creating an intimate, peaceful, dreamy atmosphere. High-quality film look, emotionally gentle and realistic.",
+                "image": "leh-kiss.jpeg",
+                "inputType": "image",
+                "noOfInput": 2
+            }
+        ]
+    },
+    {
+        "name": "Image to Video",
+        "templates": [
+            {
+                "name": "Nostalgia",
+                "description": "Turn past moments into timeless memories with a nostalgic visual feel.",
+                "prompt": "A dreamy, nostalgic transition with a vintage 35mm film aesthetic, featuring warm golden-hour light, soft film grain, and a gentle handheld camera sway that feels like a cherished memory.",
+                "image": "nostalgia.avif",
+                "inputType": "image",
+                "noOfInput": 1
+            },
+            {
+                "name": "Nature Sparkle",
+                "description": "Turn nature scenes into sparkling, cinematic short videos full of life.",
+                "prompt": "A breathtaking cinematic transition where natural sunlight hits the scene, creating a magical shimmering effect with floating dust motes and sparkling lens flares over lush, swaying greenery.",
+                "image": "nature-sparkle.avif",
+                "inputType": "image",
+                "noOfInput": 1
+            },
+            {
+                "name": "Ancient Greece",
+                "description": "Bring Ancient Greece to life with stunning visuals, temples, and myths.",
+                "prompt": "Cinematic drone flyover of Ancient Greece, bustling agora, warm golden-hour light, 35mm film style.",
+                "image": "ancient-greece.avif",
+                "inputType": "image",
+                "noOfInput": 1
+            }
+        ]
+    },
+    {
+        "name": "Baby AI Video",
+        "templates": [
+            {
+                "name": "Baby Boy Dancing",
+                "description": "Bring joy to life with a cute baby dancing moment",
+                "prompt": "A single image of a baby boy standing or sitting. The baby gently bounces up and down with small, playful movements. Arms move slightly from side to side and hands wiggle naturally. Head makes small happy nods. Movement is slow, soft, and rhythmic like a cute baby dance. No fast motion. Body proportions remain realistic. Face stays clear, stable, and expressive. Natural lighting, realistic human motion.",
+                "image": "baby-dance.gif",
+                "inputType": "image",
+                "noOfInput": 1
+            },
+            {
+                "name": "Baby Bounce",
+                "description": "A cute baby bouncing happily",
+                "prompt": "A single image of a baby boy. The baby gently bounces in place with small happy movements. Arms move slightly up and down and hands wiggle playfully. Head makes tiny joyful nods. Motion is slow, soft, and rhythmic. Face stays clear and stable. Natural lighting, realistic baby movement.",
+                "image": "baby-bounce.png",
+                "inputType": "image",
+                "noOfInput": 1
+              },
+              {
+                "name": "Baby Sway",
+                "description": "A sweet baby swaying side to side",
+                "prompt": "A single image of a baby boy. The baby softly sways side to side like a cute dance. Arms move gently outward and inward. Small head tilt with a cheerful expression. Very subtle motion. No fast movement. Face and body remain stable and realistic.",
+                "image": "baby-sway.png",
+                "inputType": "image",
+                "noOfInput": 1
+              },
+              {
+                "name": "Baby Hand Wiggle",
+                "description": "A playful baby wiggling hands happily",
+                "prompt": "A single image of a baby boy. The baby stays mostly in place and wiggles both hands happily while making small body movements. Slight bouncing motion. Head remains stable with tiny nods. Natural lighting, soft and realistic baby motion.",
+                "image": "baby-hand-wiggle.png",
+                "inputType": "image",
+                "noOfInput": 1
+              },
+              {
+                "name": "Clapping Baby",
+                "description": "A baby clapping softly with joy",
+                "prompt": "A single image of a baby boy. The baby slowly brings hands close together in a gentle clapping motion. Minimal arm movement. Small happy bounce. Motion is slow and subtle. Face remains stable and clear.",
+                "image": "clapping-baby.png",
+                "inputType": "image",
+                "noOfInput": 1
+              } 
+        ]
+    },
+    {
+        "name": "Human AI Video",
+        "templates": [
+          {
+            "name": "Soft Smile",
+            "description": "Turn a photo into a gentle smiling moment",
+            "prompt": "A single image of a person. The person slowly forms a soft, natural smile. Lips curve slightly upward and eyes brighten gently. Very subtle head movement. Motion is slow and realistic. Face remains clear and stable. Natural lighting.",
+            "image": "soft-smile.png",
+            "inputType": "image",
+            "noOfInput": 1
+          },
+          {
+            "name": "Friendly Wave",
+            "description": "Create a natural waving animation from a photo",
+            "prompt": "A single image of a person. The person gently raises one hand and waves slowly toward the camera. Small wrist movement only. Head stays mostly still. Motion is smooth and subtle. Face remains stable and clear. Realistic lighting.",
+            "image": "friendly-wave.png",
+            "inputType": "image",
+            "noOfInput": 1
+          },
+          {
+            "name": "Blowing Kiss",
+            "description": "A sweet blowing kiss animation",
+            "prompt": "A single image of a person. The person gently brings one hand to their lips and blows a soft kiss toward the camera. Subtle lip movement and small hand motion. Slow and smooth action. Face remains stable and expressive.",
+            "image": "blowing-kiss.png",
+            "inputType": "image",
+            "noOfInput": 1
+          },
+          {
+            "name": "Simple Groove",
+            "description": "Add a subtle groove dance to a photo",
+            "prompt": "A single image of a person. The person makes small rhythmic body movements like a simple groove dance. Slight shoulder movement and tiny head nods. Motion is slow and controlled. Face remains stable and clear. Natural lighting.",
+            "image": "simple-groove.png",
+            "inputType": "image",
+            "noOfInput": 1
+          }
+        ]
+      }
+      
+]

@@ -1,0 +1,29 @@
+[
+    {
+        "name": "VideoGen Credits",
+        "bulletPoints": ["Create stunning AI videos", "Swap your face and animate effects", "15 credits included"],
+        "credits": 15,
+        "amount": 299,
+        "bestValue": false,
+        "mostPopular": false,
+        "playStorePlanId": "videogen_credits_15"
+    },
+    {
+        "name": "VideoGen Credits",
+        "bulletPoints": ["Create stunning AI videos", "Swap your face and animate effects", "35 credits included"],
+        "credits": 35,
+        "amount": 699,
+        "bestValue": true,
+        "mostPopular": false,
+        "playStorePlanId": "videogen_credits_35"
+    },
+    {
+        "name": "VideoGen Credits",
+        "bulletPoints": ["Create stunning AI videos", "Swap your face and animate effects", "100 credits included"],
+        "credits": 100,
+        "amount": 1999,
+        "bestValue": false,
+        "mostPopular": true,
+        "playStorePlanId": "videogen_credits_100"
+    }
+]
