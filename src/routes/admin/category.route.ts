@@ -15,6 +15,7 @@ export class CategoryRoute {
   private routes() {
     this.router.get("/", verifyAdminToken,this.categoryController.index.bind(this.categoryController));
     this.router.post("/", verifyAdminToken,this.categoryController.create.bind(this.categoryController));
+    this.router.put("/:id", verifyAdminToken,this.categoryController.update.bind(this.categoryController));
     this.router.delete("/:id", verifyAdminToken,this.categoryController.deleteCategory.bind(this.categoryController));
     this.router.get("/:id", verifyAdminToken,this.categoryController.getById.bind(this.categoryController));
   }

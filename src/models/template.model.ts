@@ -6,6 +6,7 @@ export interface ITemplate extends Document {
   prompt: string;
   image: string;
   inputType: string;
+  templateType: string;
   categoryId: mongoose.Types.ObjectId;
   noOfInput: number;
 }
@@ -18,6 +19,7 @@ const TemplateSchema = new Schema<ITemplate>(
     prompt: { type: String, required: false },
     image: { type: String, required: false },
     inputType: { type: String, required: false, default: "image" },
+    templateType: { type: String, required: false, default: "video" },
     noOfInput: { type: Number, required: false, default: 1 },
   },
   {

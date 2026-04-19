@@ -180,7 +180,7 @@ export class VideoController {
 
   public async getVideoStatusById(req: Request, res: Response): Promise<void> {
     try {
-      const { uuid } = req.params;
+      const uuid = req.params.uuid as string;
       const videoData = await Video.findOne({ uuid: uuid });
       if (videoData?.userId?.toString() != req.user?._id?.toString()) {
         ResponseHandler.error(res, {
