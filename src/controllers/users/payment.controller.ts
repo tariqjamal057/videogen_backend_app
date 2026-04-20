@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { logError, ResponseHandler } from '../../handlers';
-import { Plan, Transaction, User } from '../../models';
+import { Plan, Transaction, User, Video } from '../../models';
 
 export class PaymentController {
   public async updateInAppPurchase(req: Request, res: Response): Promise<void> {
@@ -70,27 +70,59 @@ export class PaymentController {
 
   public async transactions(req: Request, res: Response): Promise<void> {
     try {
-      let { page = 1, limit = 10 } = req.query;
+      let { page = 1, limit = 20 } = req.query;
       limit = Number(limit);
       page = Number(page);
       const skip = (page - 1) * limit;
-      const transactions = await Transaction.find({
+
+      // Fetch purchases
+      const purchases = await Transaction.find({
         userId: req.user?._id,
-      })
-        .sort({
-          createdAt: -1,
-        })
-        .skip(skip)
-        .limit(limit);
+        status: 2 // Completed
+      }).lean();
+
+      // Fetch usage (successful generations)
+      const usages = await Video.find({
+        userId: req.user?._id,
+        status: 2 // Generated
+      }).populate('templateId').lean();
+
+      // Format purchases
+      const purchaseHistory = purchases.map(p => ({
+        _id: p._id,
+        type: 'purchase',
+        credits: p.credits,
+        amount: p.amount,
+        createdAt: (p as any).createdAt,
+      }));
+
+      // Format usages
+      const usageHistory = usages.map(u => ({
+        _id: u._id,
+        type: 'usage',
+        usageType: (u.uuid?.startsWith('img_') || (u.templateId as any)?.templateType === 'image') ? 'Image' : 'Video',
+        credits: 1, // Currently each generation costs 1 credit
+        createdAt: (u as any).createdAt,
+      }));
+
+      // Combine and sort
+      const combined = [...purchaseHistory, ...usageHistory].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      // Apply pagination manually on combined array or fetch more from DB if needed
+      // For now, let's just return the combined slice
+      const paginatedData = combined.slice(skip, skip + limit);
+
       ResponseHandler.success(res, {
         msg: 'Transaction fetched successfully!!',
-        data: transactions,
+        data: paginatedData,
       });
       return;
     } catch (error) {
       logError(
-        `/api/v1/users/payments/verify-in-app-purchase`,
-        'POST',
+        `/api/v1/users/payments/transactions`,
+        'GET',
         error as Error,
       );
       ResponseHandler.error(res, {

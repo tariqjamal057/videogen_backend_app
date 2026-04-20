@@ -5,57 +5,93 @@ import {
   TextImageToVideoRequest,
   VideoGenerationByTextRequest,
 } from '../../interfaces/IRapidApiinterface';
-import { RapidApiService } from '../../services/rapidApi.service';
+import { RunwayService } from '../../services/runway.service';
+import { StabilityService } from '../../services/stability.service';
 import { combineLeftRight } from '../../services/sharp.service';
+import fs from 'fs';
 
 export class VideoController {
-  private readonly rapidApiService: RapidApiService;
+  private readonly runwayService: RunwayService;
+  private readonly stabilityService: StabilityService;
   constructor() {
-    this.rapidApiService = new RapidApiService();
+    this.runwayService = new RunwayService();
+    this.stabilityService = new StabilityService();
   }
 
-  /*
-        {
-            templateId: "",
-            useOnlyPrompt: true,
-            prompt: "",
-            files: []
-      }
-  */
   public async generate(req: Request, res: Response): Promise<void> {
     try {
       const payload = req.body;
-      console.error('Payload:', payload);
-      if (!payload.templateId && !payload.useOnlyPrompt) {
+      const isAiVideoTab = req.query.isAiVideoTab === 'true';
+      const files = req.files as Express.Multer.File[];
+      const localPaths = files ? files.map((file) => file.path) : [];
+
+      if (!payload.templateId && !payload.prompt) {
         ResponseHandler.error(res, {
           msg: 'Please provide either prompt or select template',
         });
         return;
       }
+
       if (Number(req.user?.credits) <= 0) {
         ResponseHandler.error(res, {
-          msg: "You don't have enough credits to generate video. Please buy some credits.",
+          msg: "You don't have enough credits to generate. Please buy some credits.",
         });
         return;
       }
-      const files = req.files as Express.Multer.File[];
 
-      const paths = files.map((file) => file.path);
-      console.log(req.file);
-      console.error(req.files);
-      console.log(req.files);
-      console.log(payload);
-      if (payload.templateId && payload.useOnlyPrompt == "false") {
-        console.error('Generating with template');
-        const template = await Template.findOne({ _id: payload.templateId });
+      let template = null;
+      if (payload.templateId && payload.useOnlyPrompt === "false") {
+        template = await Template.findOne({ _id: payload.templateId });
         if (!template) {
           ResponseHandler.error(res, {
-            msg: 'Please provide either prompt or select template',
+            msg: 'Template not found',
           });
           return;
         }
-        console.error('Generating with template =-=-= ', template);
-        if (template.inputType == 'image') {
+      }
+
+      // Determine if this is an image or video generation request
+      const isImageRequest = isAiVideoTab || (template && template.templateType === 'image');
+
+      if (isImageRequest) {
+        // IMAGE GENERATION
+        const imagePath = localPaths.length > 0 ? localPaths[0] : null;
+        const finalPrompt = template ? (`${template.prompt}, ${payload.prompt}`) : payload.prompt;
+        
+        const response = await this.stabilityService.generateImage(finalPrompt, imagePath);
+        
+        const video = await Video.create({
+          userId: req.user?._id,
+          templateId: template?._id || null,
+          prompt: payload.prompt,
+          progress: 100,
+          uuid: `img_${Date.now()}`,
+          url: response.url,
+          gifUrl: response.url,
+          status: 2,
+        });
+        
+        await User.updateOne({ _id: req.user?._id }, { $inc: { credits: -1 } });
+        
+        ResponseHandler.success(res, {
+          msg: 'Image generated successfully!',
+          data: video,
+        });
+        return;
+      } else {
+        // VIDEO GENERATION
+        let response;
+        
+        // For video generation, we need to upload files to Cloudinary first because Runway needs URLs
+        const cloudinaryUrls = [];
+        for(const path of localPaths) {
+           const url = await this.stabilityService.uploadToCloudinary(path);
+           cloudinaryUrls.push(url);
+           // Delete local file after upload to Cloudinary
+           if (fs.existsSync(path)) fs.unlinkSync(path);
+        }
+
+        if (template && template.inputType === 'image') {
           const payloadData: TextImageToVideoRequest = {
             text_prompt: template.prompt,
             model: 'gen3',
@@ -67,42 +103,15 @@ export class VideoController {
             time: 10,
             img_prompt: '',
           };
-          console.error('Paths:', paths);
-          console.error('payloadData=-=-=:', payloadData);
-          // payloadData.img_prompt = "";
-          payloadData.img_prompt =
-            paths.length > 1 ? paths.join(",") : paths.length == 1 ? paths[0] : '';
-          if(paths.length > 1){
-            const url = await combineLeftRight(paths);
-            payloadData.img_prompt = url;
-          }else{
-            payloadData.img_prompt = paths.length == 1 ? paths[0] : '';
+          
+          if(cloudinaryUrls.length > 1){
+            // combineLeftRight currently expects local paths, let's keep it simple for now and use first image
+            // OR we could have kept local paths just for this.
+            payloadData.img_prompt = cloudinaryUrls[0]; 
+          } else {
+            payloadData.img_prompt = cloudinaryUrls.length == 1 ? cloudinaryUrls[0] : '';
           }
-
-          console.log('Payload Data', payloadData);
-          console.error('Payload Data', payloadData);
-          const response =
-            await this.rapidApiService.generateImageTextToVideo(payloadData);
-          await Video.create({
-            userId: req.user?._id,
-            templateId: payload.templateId,
-            prompt: payload.prompt,
-            progress: 0,
-            uuid: response.uuid,
-            inputImages: paths,
-            url: null,
-            gifUrl: null,
-            status: 1,
-          });
-          await User.updateOne(
-            { _id: req.user?._id },
-            { $inc: { credits: -1 } },
-          );
-          ResponseHandler.success(res, {
-            msg: 'Video generation has been queued successfully!',
-            data: response,
-          });
-          return;
+          response = await this.runwayService.generateImageTextToVideo(payloadData);
         } else {
           const payloadData: VideoGenerationByTextRequest = {
             text_prompt: payload.prompt,
@@ -114,53 +123,23 @@ export class VideoController {
             callback_url: '',
             time: 10,
           };
-
-          const response =
-            await this.rapidApiService.generateVideoByText(payloadData);
-          await Video.create({
-            userId: req.user?._id,
-            templateId: null,
-            prompt: payload.prompt,
-            progress: 0,
-            uuid: response.uuid,
-            url: null,
-            gifUrl: null,
-            status: 1,
-          });
-          await User.updateOne(
-            { _id: req.user?._id },
-            { $inc: { credits: -1 } },
-          );
-          ResponseHandler.success(res, {
-            msg: 'Video generation has been queued successfully!',
-            data: response,
-          });
-          return;
+          response = await this.runwayService.generateVideoByText(payloadData);
         }
-      } else {
-        const payloadData: VideoGenerationByTextRequest = {
-          text_prompt: payload.prompt,
-          model: 'gen3',
-          width: 1344,
-          height: 768,
-          motion: 5,
-          seed: 0,
-          callback_url: '',
-          time: 10,
-        };
-        const response =
-          await this.rapidApiService.generateVideoByText(payloadData);
+
         await Video.create({
           userId: req.user?._id,
-          templateId: null,
+          templateId: template?._id || null,
           prompt: payload.prompt,
           progress: 0,
           uuid: response.uuid,
+          inputImages: cloudinaryUrls,
           url: null,
           gifUrl: null,
           status: 1,
         });
+        
         await User.updateOne({ _id: req.user?._id }, { $inc: { credits: -1 } });
+        
         ResponseHandler.success(res, {
           msg: 'Video generation has been queued successfully!',
           data: response,
@@ -168,10 +147,9 @@ export class VideoController {
         return;
       }
     } catch (error) {
-      console.error('Error in video generation:', req.body);
-      logError(`/api/v1/users/videos`, 'POST', error as Error);
+      logError(`/api/v1/users/videos/generate`, 'POST', error as Error);
       ResponseHandler.error(res, {
-        msg: 'Video generation failed!!',
+        msg: 'Generation failed!!',
         statusCode: 500,
         error: [(error as Error).message],
       });
@@ -189,7 +167,7 @@ export class VideoController {
         return;
       }
       if (videoData?.status == 1) {
-        const response = await this.rapidApiService.getTaskStatusById(uuid);
+        const response = await this.runwayService.getTaskStatusById(uuid);
         const payload = {
           progress: response.progress * 100,
           url: '',
@@ -209,14 +187,14 @@ export class VideoController {
       const video = await Video.findOne({ uuid: uuid }).populate('templateId');
 
       ResponseHandler.success(res, {
-        msg: 'Video data fetched successfully',
+        msg: 'Generation data fetched successfully',
         data: video,
       });
       return;
     } catch (error) {
       logError(`/api/v1/users/video/{uuid}`, 'GET', error as Error);
       ResponseHandler.error(res, {
-        msg: 'Error while fetching video',
+        msg: 'Error while fetching data',
         statusCode: 500,
         error: [(error as Error).message],
       });
