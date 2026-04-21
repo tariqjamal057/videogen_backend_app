@@ -38,7 +38,16 @@ class App {
     );
     this.app.set("view engine", "ejs");
     this.app.set("views", path.join(__dirname, "views"));
+    
+    // 1. Serve from project root /public (where you are copying the images)
+    this.app.use(express.static(path.join(process.cwd(), 'public')));
+    
+    // 2. Serve from src/public (where the original images are)
+    this.app.use(express.static(path.join(process.cwd(), 'src', 'public')));
+    
+    // 3. Fallback for when running from dist folder
     this.app.use(express.static(path.join(__dirname, 'public')));
+
     this.app.use(express.json({ limit: "100mb" })); // Parse incoming JSON requests
     this.app.use(express.urlencoded({ limit: "100mb", extended: true })); // Parse URL-encoded payloads
   }
