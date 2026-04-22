@@ -56,7 +56,9 @@ export class VideoController {
       if (isImageRequest) {
         // IMAGE GENERATION
         const imagePath = localPaths.length > 0 ? localPaths[0] : null;
-        const finalPrompt = template ? (`${template.prompt}, ${payload.prompt}`) : payload.prompt;
+        const finalPrompt = template 
+          ? (payload.prompt ? `${template.prompt}, ${payload.prompt}` : template.prompt) 
+          : payload.prompt;
         
         const response = await this.stabilityService.generateImage(finalPrompt, imagePath);
         
@@ -68,6 +70,7 @@ export class VideoController {
           uuid: `img_${Date.now()}`,
           url: response.url,
           gifUrl: response.url,
+          thumbnail: response.url,
           status: 2,
         });
         
@@ -93,7 +96,7 @@ export class VideoController {
 
         if (template && template.inputType === 'image') {
           const payloadData: TextImageToVideoRequest = {
-            text_prompt: template.prompt,
+            text_prompt: payload.prompt ? `${template.prompt}, ${payload.prompt}` : template.prompt,
             model: 'gen3',
             image_as_end_frame: false,
             flip: false,
@@ -114,7 +117,7 @@ export class VideoController {
           response = await this.runwayService.generateImageTextToVideo(payloadData);
         } else {
           const payloadData: VideoGenerationByTextRequest = {
-            text_prompt: payload.prompt,
+            text_prompt: template ? (payload.prompt ? `${template.prompt}, ${payload.prompt}` : template.prompt) : payload.prompt,
             model: 'gen3',
             width: 1344,
             height: 768,
@@ -135,6 +138,7 @@ export class VideoController {
           inputImages: cloudinaryUrls,
           url: null,
           gifUrl: null,
+          thumbnail: cloudinaryUrls[0] || template?.image || null,
           status: 1,
         });
         

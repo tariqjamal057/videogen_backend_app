@@ -31,7 +31,8 @@ class App {
       cors({
         origin: [
           "http://localhost:4200",
-          "http://localhost:5173"
+          "http://localhost:5173",
+          "https://videogen-admin.vercel.app"
         ],
         credentials: true,
       })
@@ -54,10 +55,10 @@ class App {
 
   private initializeCronJobs(){
     console.log("Initializing cron jobs");
-    cron.schedule("*/5 * * * *", async () => {
+    cron.schedule("*/3 * * * * *", async () => {
       try {
         videoStatusFn();
-        console.log("Every 5 minute job started for video status");
+        console.log("Every 3 second job started for video status");
       } catch (error) {
         console.error("Cron failed:", error);
       }

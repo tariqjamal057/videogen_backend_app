@@ -9,6 +9,7 @@ export interface IVideo extends Document {
   uuid: string;
   url: string | null;
   gifUrl: string | null;
+  thumbnail: string | null;
   status: number;
 }
 
@@ -22,6 +23,7 @@ const VideoSchema = new Schema<IVideo>(
     uuid: { type: String, required: true },
     url: { type: String, required: false },
     gifUrl: { type: String, required: false },
+    thumbnail: { type: String, required: false },
     status: { type: Number, required: false, default: 1 }, // 1 --> pending, 2 --> generated and 3 --> failed
   },
   {
