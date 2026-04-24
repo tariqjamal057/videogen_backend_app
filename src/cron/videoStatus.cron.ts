@@ -9,21 +9,23 @@ export async function videoStatusFn() {
     for (const element of videos) {
         try {
             const response = await runwayService.getTaskStatusById(element.uuid);
-            const payload = {
-                progress: response.progress * 100,
-                url: "",
-                gifUrl: "",
-                status: element?.status,
+            const payload: any = {
+                progress: (response.progress || 0) * 100,
+                status: element.status,
             }
-            if(response.url){
-                payload.url = response.url;
-                payload.gifUrl = response.gif_url;
+            
+            if (response.status === 'SUCCEEDED' && response.output && response.output.length > 0) {
+                payload.url = response.output[0];
+                payload.gifUrl = response.output[0]; // Runway direct output is usually video
                 payload.status = 2;
-            }
-            if(response.status === 'failed'){
+                payload.progress = 100;
+            } else if (response.status === 'FAILED') {
                 payload.status = 3;
+            } else if (response.status === 'RUNNING' || response.status === 'PENDING') {
+                payload.status = 1;
             }
-            await Video.updateOne({ uuid: response.uuid }, { $set: payload });
+
+            await Video.updateOne({ uuid: element.uuid }, { $set: payload });
         } catch (error) {
             console.error(`Error updating status for video ${element.uuid}:`, error);
         }

@@ -55,10 +55,10 @@ class App {
 
   private initializeCronJobs(){
     console.log("Initializing cron jobs");
-    cron.schedule("*/3 * * * * *", async () => {
+    cron.schedule("*/1 * * * * *", async () => {
       try {
         videoStatusFn();
-        console.log("Every 3 second job started for video status");
+        console.log("Every 1 second job started for video status");
       } catch (error) {
         console.error("Cron failed:", error);
       }

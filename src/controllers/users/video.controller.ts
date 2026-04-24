@@ -94,39 +94,27 @@ export class VideoController {
            if (fs.existsSync(path)) fs.unlinkSync(path);
         }
 
-        if (template && template.inputType === 'image') {
-          const payloadData: TextImageToVideoRequest = {
-            text_prompt: payload.prompt ? `${template.prompt}, ${payload.prompt}` : template.prompt,
-            model: 'gen3',
-            image_as_end_frame: false,
-            flip: false,
-            motion: 5,
-            seed: 0,
-            callback_url: '',
-            time: 10,
-            img_prompt: '',
-          };
-          
-          if(cloudinaryUrls.length > 1){
-            // combineLeftRight currently expects local paths, let's keep it simple for now and use first image
-            // OR we could have kept local paths just for this.
-            payloadData.img_prompt = cloudinaryUrls[0]; 
-          } else {
-            payloadData.img_prompt = cloudinaryUrls.length == 1 ? cloudinaryUrls[0] : '';
-          }
-          response = await this.runwayService.generateImageTextToVideo(payloadData);
+        const inputType = payload.inputType || (template ? template.inputType : 'text');
+        const finalPrompt = template ? (payload.prompt ? `${template.prompt}, ${payload.prompt}` : template.prompt) : payload.prompt;
+
+        if (inputType === 'image' && cloudinaryUrls.length > 0) {
+          response = await this.runwayService.generateImageToVideo({
+            promptText: finalPrompt,
+            promptImage: cloudinaryUrls,
+            ratio: "720:1280",
+            duration: parseInt(payload.duration) || 8,
+          });
+        } else if (inputType === 'video' && cloudinaryUrls.length > 0) {
+          response = await this.runwayService.generateVideoToVideo({
+            videoUri: cloudinaryUrls[0],
+            promptText: finalPrompt,
+          });
         } else {
-          const payloadData: VideoGenerationByTextRequest = {
-            text_prompt: template ? (payload.prompt ? `${template.prompt}, ${payload.prompt}` : template.prompt) : payload.prompt,
-            model: 'gen3',
-            width: 1344,
-            height: 768,
-            motion: 5,
-            seed: 0,
-            callback_url: '',
-            time: 10,
-          };
-          response = await this.runwayService.generateVideoByText(payloadData);
+          response = await this.runwayService.generateVideoByText({
+            promptText: finalPrompt,
+            ratio: "720:1280",
+            duration: parseInt(payload.duration) || 10,
+          });
         }
 
         await Video.create({
@@ -134,7 +122,7 @@ export class VideoController {
           templateId: template?._id || null,
           prompt: payload.prompt,
           progress: 0,
-          uuid: response.uuid,
+          uuid: response.id,
           inputImages: cloudinaryUrls,
           url: null,
           gifUrl: null,
@@ -172,21 +160,22 @@ export class VideoController {
       }
       if (videoData?.status == 1) {
         const response = await this.runwayService.getTaskStatusById(uuid);
-        const payload = {
-          progress: response.progress * 100,
+        const payload: any = {
+          progress: (response.progress || 0) * 100,
           url: '',
           gifUrl: '',
           status: videoData?.status,
         };
-        if (response.url) {
-          payload.url = response.url;
-          payload.gifUrl = response.gif_url;
+        if (response.status === 'SUCCEEDED' && response.output && response.output.length > 0) {
+          payload.url = response.output[0];
+          payload.gifUrl = response.output[0];
           payload.status = 2;
+          payload.progress = 100;
         }
-        if (response.status === 'failed') {
+        if (response.status === 'FAILED') {
           payload.status = 3;
         }
-        await Video.updateOne({ uuid: response.uuid }, { $set: payload });
+        await Video.updateOne({ uuid: response.id }, { $set: payload });
       }
       const video = await Video.findOne({ uuid: uuid }).populate('templateId');
 
