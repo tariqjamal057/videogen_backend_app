@@ -4,8 +4,8 @@ dotenv.config();
 export class Config {
   public static USER_PREFIX: string = "/api/v1/users";
   public static ADMIN_PREFIX: string = "/api/v1/admins";
-  public static ENV: string = "dev";
-  public static PORT: number = 4000;
+  public static ENV: string = process.env.NODE_ENV || "dev";
+  public static PORT: number = parseInt(process.env.PORT || "4000");
   public static MONGO_DB_URI: string = process.env.MONGO_DB_URI || "";
   public static CLOUDINARY_CLOUD_NAME: string = process.env.CLOUDINARY_CLOUD_NAME || "";
   public static CLOUDINARY_API_KEY: string = process.env.CLOUDINARY_API_KEY || "";

@@ -17,7 +17,15 @@ declare global {
 }
 
 // connect to MongoDB
-connectDB();
+const startServer = async () => {
+  try {
+    await connectDB();
+    const app = new App();
+    app.listen(Config.PORT);
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
 
-const app = new App();
-app.listen(Config.PORT);
+startServer();

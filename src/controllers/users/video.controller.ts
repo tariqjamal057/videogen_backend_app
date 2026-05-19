@@ -262,4 +262,41 @@ export class VideoController {
       });
     }
   }
+
+  public async deleteVideo(req: Request, res: Response): Promise<void> {
+    try {
+      const videoId = req.params.id;
+      const video = await Video.findOne({ _id: videoId });
+      
+      if (!video) {
+        ResponseHandler.error(res, {
+          msg: 'Video not found',
+          statusCode: 404,
+        });
+        return;
+      }
+
+      if (video.userId?.toString() !== req.user?._id?.toString()) {
+        ResponseHandler.error(res, {
+          msg: 'Unauthorized to delete this video',
+          statusCode: 401,
+        });
+        return;
+      }
+
+      await video.deleteOne();
+      
+      ResponseHandler.success(res, {
+        msg: 'Video deleted successfully',
+      });
+      return;
+    } catch (error) {
+      logError(`/api/v1/users/videos/:id`, 'DELETE', error as Error);
+      ResponseHandler.error(res, {
+        msg: 'Error while deleting video',
+        statusCode: 500,
+        error: [(error as Error).message],
+      });
+    }
+  }
 }

@@ -86,6 +86,28 @@ export class VideoRoute {
      *         description: Return gallery of generated videos
      */
     this.router.get("/gallery", verifyToken,this.videoController.gallery.bind(this.videoController));
+    
+    /**
+     * @swagger
+     * /api/v1/users/videos/{id}:
+     *   delete:
+     *     summary: Delete a generated video/image by ID
+     *     tags: [Video]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Video ID
+     *     responses:
+     *       200:
+     *         description: Video deleted successfully
+     */
+    this.router.delete("/:id", verifyToken, this.videoController.deleteVideo.bind(this.videoController));
+
     this.router.post("/rapid-api-webhook",this.videoController.rapidApiWebhook.bind(this.videoController));
   }
 }

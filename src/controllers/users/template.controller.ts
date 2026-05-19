@@ -7,19 +7,48 @@ export class TemplateController {
   }
   public async getTemplates(req: Request, res: Response): Promise<void> {
     try {
-      const templates = await Category.aggregate([
+      // Fetch categories with their associated templates
+      const categoriesWithTemplates = await Category.aggregate([
         {
-            $lookup: {
-              from: 'templates',
-              localField: '_id',
-              foreignField: 'categoryId',
-              as: 'templates',
-            },
+          $lookup: {
+            from: 'templates',
+            localField: '_id',
+            foreignField: 'categoryId',
+            as: 'templates',
           },
-      ])
+        },
+        {
+          $project: {
+            name: 1,
+            templates: {
+              $sortArray: { input: '$templates', sortBy: { createdAt: -1 } }
+            }
+          }
+        }
+      ]);
+
+      // Fetch video templates without categories (or null categoryId)
+      const videoTemplates = await Template.find({ 
+        templateType: 'video', 
+        $or: [
+          { categoryId: { $exists: false } },
+          { categoryId: null }
+        ]
+      }).sort({ createdAt: -1 });
+
+      const result = [...categoriesWithTemplates];
+      
+      if (videoTemplates.length > 0) {
+        result.push({
+          _id: 'video_category',
+          name: 'Video',
+          templates: videoTemplates
+        });
+      }
+
       ResponseHandler.success(res, {
         msg: 'Templates fetched successfully',
-        data: templates,
+        data: result,
       });
     } catch (error) {
       logError(`/api/v1/users/templates/`, 'GET', error as Error);
@@ -35,6 +64,7 @@ export class TemplateController {
     try {
       let { limit = 4 } = req.query;
       limit = Number(limit);
+      // Ensure we get the latest templates
       const templates = await Template.find({}).sort({ createdAt: -1 }).limit(limit);
       ResponseHandler.success(res, {
         msg: 'Templates fetched successfully',

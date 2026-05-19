@@ -7,7 +7,7 @@ import {
 export class TemplateController {
   public async index(req: Request, res: Response): Promise<void> {
     try {
-        const templates = await Template.find().populate('categoryId');
+        const templates = await Template.find().populate('categoryId').sort({ createdAt: -1 });
       ResponseHandler.success(res, {
         msg: 'Template listed successfully',
         data: templates,
@@ -53,6 +53,14 @@ export class TemplateController {
       if(req.file){
         payload.image = req.file?.path;
       }
+
+      if (payload.isPrimary === 'true' || payload.isPrimary === true) {
+        await Template.updateMany(
+          { categoryId: payload.categoryId, templateType: payload.templateType },
+          { $set: { isPrimary: false } }
+        );
+      }
+
       const template = await Template.create(payload);
 
       ResponseHandler.success(res, {
@@ -74,7 +82,6 @@ export class TemplateController {
       const template = await Template.findOne({
         _id: req.params.id,
       });
-      console.log(req.file);
       if(!template) {
         ResponseHandler.error(res, {
           msg: 'Template not found',
@@ -85,6 +92,17 @@ export class TemplateController {
       const payload = req.body;
       if(req.file){
         payload.image = req.file?.path;
+      }
+
+      if (payload.isPrimary === 'true' || payload.isPrimary === true) {
+        await Template.updateMany(
+          { 
+            categoryId: payload.categoryId || template.categoryId, 
+            templateType: payload.templateType || template.templateType,
+            _id: { $ne: req.params.id }
+          },
+          { $set: { isPrimary: false } }
+        );
       }
 
       await Template.updateOne({ _id: req.params.id }, { $set: payload });

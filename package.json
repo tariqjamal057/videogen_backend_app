@@ -2,10 +2,7 @@
 	"scripts": {
 		"dev": "nodemon",
 		"build": "tsc",
-		"start": "node dist/server.js",
-		"lint": "eslint .",
-		"lint:fix": "eslint . --fix",
-		"prepare": "husky install"
+		"start": "node dist/server.js"
 	},
 	"lint-staged": {
 		"*.ts": [

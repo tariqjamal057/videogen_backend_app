@@ -32,7 +32,8 @@ class App {
         origin: [
           "http://localhost:4200",
           "http://localhost:5173",
-          "https://videogen-admin.vercel.app"
+          "https://videogen-admin.vercel.app",
+          "https://admin.clipzovideoai.com/"
         ],
         credentials: true,
       })
@@ -55,10 +56,10 @@ class App {
 
   private initializeCronJobs(){
     console.log("Initializing cron jobs");
-    cron.schedule("*/1 * * * * *", async () => {
+    cron.schedule("*/5 * * * * *", async () => {
       try {
         videoStatusFn();
-        console.log("Every 1 second job started for video status");
+        console.log("Every 5 second job started for video status");
       } catch (error) {
         console.error("Cron failed:", error);
       }
