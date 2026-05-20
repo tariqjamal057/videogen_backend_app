@@ -33,7 +33,7 @@ class App {
           "http://localhost:4200",
           "http://localhost:5173",
           "https://videogen-admin.vercel.app",
-          "https://admin.clipzovideoai.com/"
+          "https://admin.clipzovideoai.com"
         ],
         credentials: true,
       })

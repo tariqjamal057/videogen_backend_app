@@ -9,6 +9,7 @@ import { RunwayService } from '../../services/runway.service';
 import { StabilityService } from '../../services/stability.service';
 import { combineLeftRight } from '../../services/sharp.service';
 import fs from 'fs';
+import path from 'path';
 
 export class VideoController {
   private readonly runwayService: RunwayService;
@@ -126,7 +127,7 @@ export class VideoController {
           inputImages: cloudinaryUrls,
           url: null,
           gifUrl: null,
-          thumbnail: cloudinaryUrls[0] || template?.image || null,
+          thumbnail: cloudinaryUrls.length > 0 ? cloudinaryUrls[0] : (template?.image || null),
           status: 1,
         });
         
@@ -167,8 +168,9 @@ export class VideoController {
           status: videoData?.status,
         };
         if (response.status === 'SUCCEEDED' && response.output && response.output.length > 0) {
-          payload.url = response.output[0];
-          payload.gifUrl = response.output[0];
+          const cloudinaryUrl = await this.stabilityService.uploadToCloudinary(response.output[0]);
+          payload.url = cloudinaryUrl;
+          payload.gifUrl = cloudinaryUrl;
           payload.status = 2;
           payload.progress = 100;
         }
@@ -242,9 +244,10 @@ export class VideoController {
         progress: payload.progress,
       };
       if (payload.status == 'completed' || payload.status == 'success') {
+        const cloudinaryUrl = await this.stabilityService.uploadToCloudinary(payload.url);
         updateData.status = 2;
-        updateData.url = payload.url;
-        updateData.gifUrl = payload.gif_url;
+        updateData.url = cloudinaryUrl;
+        updateData.gifUrl = payload.gif_url ? await this.stabilityService.uploadToCloudinary(payload.gif_url) : cloudinaryUrl;
       } else if (payload.status == 'failed') {
         updateData.status = 3;
       }
@@ -264,39 +267,50 @@ export class VideoController {
   }
 
   public async deleteVideo(req: Request, res: Response): Promise<void> {
-    try {
-      const videoId = req.params.id;
-      const video = await Video.findOne({ _id: videoId });
-      
-      if (!video) {
-        ResponseHandler.error(res, {
-          msg: 'Video not found',
-          statusCode: 404,
-        });
-        return;
-      }
-
-      if (video.userId?.toString() !== req.user?._id?.toString()) {
-        ResponseHandler.error(res, {
-          msg: 'Unauthorized to delete this video',
-          statusCode: 401,
-        });
-        return;
-      }
-
-      await video.deleteOne();
-      
-      ResponseHandler.success(res, {
-        msg: 'Video deleted successfully',
+  try {
+    const videoId = req.params.id;
+    const video = await Video.findOne({ _id: videoId });
+    
+    if (!video) {
+      ResponseHandler.error(res, {
+        msg: 'Video not found',
+        statusCode: 404,
       });
       return;
-    } catch (error) {
-      logError(`/api/v1/users/videos/:id`, 'DELETE', error as Error);
-      ResponseHandler.error(res, {
-        msg: 'Error while deleting video',
-        statusCode: 500,
-        error: [(error as Error).message],
-      });
     }
+
+    if (video.userId?.toString() !== req.user?._id?.toString()) {
+      ResponseHandler.error(res, {
+        msg: 'Unauthorized to delete this video',
+        statusCode: 401,
+      });
+      return;
+    }
+
+    // CLEANUP LOCAL FILE FROM STORAGE
+    if (video.url && video.url.startsWith('/videos/')) {
+      // Reconstruct absolute system file path targeting public directory
+      const localFilePath = path.join(process.cwd(), 'public', video.url);
+      
+      if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+        console.log(`Successfully deleted local media asset: ${localFilePath}`);
+      }
+    }
+
+    await video.deleteOne();
+    
+    ResponseHandler.success(res, {
+      msg: 'Video deleted successfully',
+    });
+    return;
+  } catch (error) {
+    logError(`/api/v1/users/videos/:id`, 'DELETE', error as Error);
+    ResponseHandler.error(res, {
+      msg: 'Error while deleting video',
+      statusCode: 500,
+      error: [(error as Error).message],
+    });
   }
+}
 }

@@ -69,12 +69,16 @@ export class StabilityService {
   }
 
   /**
-   * Helper to upload local file to cloudinary (useful for video input images)
+   * Helper to upload local file or remote URL to cloudinary (useful for video input images and generated videos)
    */
-  public async uploadToCloudinary(filePath: string): Promise<string> {
-    if (!fs.existsSync(filePath)) return "";
-    const result = await cloudinary.uploader.upload(filePath, { folder: "uploads" });
-    // Keep file if needed by other services, or delete here if sure
+  public async uploadToCloudinary(pathOrUrl: string): Promise<string> {
+    const isUrl = pathOrUrl.startsWith('http');
+    if (!isUrl && !fs.existsSync(pathOrUrl)) return "";
+    
+    const result = await cloudinary.uploader.upload(pathOrUrl, { 
+      folder: "uploads",
+      resource_type: "auto"
+    });
     return result.secure_url;
   }
 }
